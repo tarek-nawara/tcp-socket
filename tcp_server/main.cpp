@@ -6,7 +6,6 @@
 
 #include <iostream>
 #include "TcpServer.h"
-
 #define SERVER_PORT 5000
 
 int main(int argc, char *argv[]) {
@@ -24,6 +23,7 @@ int main(int argc, char *argv[]) {
     TcpServer tcp_server;
 
     while(true) {
+        std::cout << "Handling client {ip:port} " << inet_ntoa(server_addr.sin_addr) << ":" << SERVER_PORT << std::endl;
         tcp_server.handle_tcp_client(server_socket, server_addr, client_addr);
     }
 
