@@ -70,6 +70,43 @@ ssize_t rcv_wrapper(int socket,
                     socklen_t *addr_len);
 
 /**
+ * Assign to the socket a local address and a port.
+ *
+ * @param socket     socket number
+ * @param local_addr struct containing the internet address and port to listen on
+ * @param addr_len   length of the address struct = {@code sizeof(struct sockaddr_in}
+ */
+void bind_wrapper(int socket, const struct sockaddr *local_addr, socklen_t addr_len);
+
+/**
+ * Causes internal state changes to the given socket.
+ *
+ * @param socket      socket number
+ * @param queue_limit limit of incoming connections that can be waiting at any time
+ */
+void listen_wrapper(int socket, int queue_limit);
+
+/**
+ * Dequeue the next connection on the queue of the socket,
+ * if the queue is empty it will block until a connection request
+ * arrives.
+ *
+ * @param socket      socket number
+ * @param client_addr address of the client
+ * @param addr_len    maximum size of client address
+ * @return            descriptor for a new socket that is connected to the client if
+ *                    successful, -1 on failure
+ */
+int accept_wrapper(int socket, struct sockaddr *client_addr, socklen_t *addr_len);
+
+/**
+ * Close the connection.
+ *
+ * @param socket socket number
+ */
+void close_wrapper(int socket);
+
+/**
  * Log an error message and terminate program execution.
  *
  * @param error_msg error message to log

@@ -45,6 +45,32 @@ ssize_t rcv_wrapper(int socket,
     return total_rcv;
 }
 
+void bind_wrapper(int socket, const struct sockaddr *local_addr, socklen_t addr_len) {
+    if (bind(socket, local_addr, addr_len) < 0) {
+        die_with_error("bind() failed");
+    }
+}
+
+void listen_wrapper(int socket, int queue_limit) {
+    if (listen(socket, queue_limit) < 0) {
+        die_with_error("listen() failed");
+    }
+}
+
+int accept_wrapper(int socket, struct sockaddr *client_addr, socklen_t *addr_len) {
+    int client_socket = accept(socket, client_addr, addr_len);
+    if (client_socket < 0) {
+        die_with_error("accept() failed");
+    }
+    return client_socket;
+}
+
+void close_wrapper(int socket) {
+    if (close(socket) < 0) {
+        die_with_error("close() failed");
+    }
+}
+
 
 void die_with_error(const char *error_msg) {
     perror(error_msg);
