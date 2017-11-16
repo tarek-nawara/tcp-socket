@@ -14,7 +14,7 @@ TcpServer::handle_tcp_client(int server_socket, struct sockaddr_in &server_addr,
     auto *req_buf = new char[MAXLINE + 1];
     auto *resp_buf = new char[MAXLINE + 1];
 
-    std::cout << "---Listening on port" << server_addr.sin_port << std::endl;
+    std::cout << "---Listening on port: " << server_addr.sin_port << std::endl;
     socklen_t client_addr_len = sizeof(client_addr);
     int client_socket = utils::accept_wrapper(server_socket, (struct sockaddr *) &client_addr,
                                                     &client_addr_len);

@@ -7,12 +7,12 @@
 #include "socket_utils.h"
 
 namespace utils {
-    int socket_wrapper(int family, int type, int protocol) {
-        int sock = socket(family, type, protocol);
-        if (sock < 0) {
-            die_with_error("socket() failed");
+    int socket_wrapper() {
+        int server_socket;
+        if ((server_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
+            utils::die_with_error("failed");
         }
-        return sock;
+        return server_socket;
     }
 
     void connect_wrapper(int socket, const struct sockaddr *foreign_addr, socklen_t addr_len) {

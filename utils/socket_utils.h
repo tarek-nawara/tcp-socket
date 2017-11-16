@@ -32,12 +32,9 @@ namespace utils {
     /**
      * Creating a socket.
      *
-     * @param family   address family (eg. AF_INET)
-     * @param type     determine socket semantics (eg. SOCK_STREAM for reliable stream)
-     * @param protocol end-to-end protocol (eg. IPPROTO_TCP for TCP)
      * @return         -1 for failure, or socket number for success
      */
-    int socket_wrapper(int family, int type, int protocol);
+    int socket_wrapper();
 
     /**
      * Establish connection with the given address.
