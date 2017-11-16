@@ -12,6 +12,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <cstdio>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <cstdarg>
+#include <arpa/inet.h>
 #include <cstdlib>
 
 /**
@@ -105,6 +109,11 @@ int accept_wrapper(int socket, struct sockaddr *client_addr, socklen_t *addr_len
  * @param socket socket number
  */
 void close_wrapper(int socket);
+
+int inet_pton_wrapper(int family, const char *strptr, struct in_addr *addrptr);
+
+const char * inet_ntop_wrapper(int family, const void *addrptr, char *strptr, socklen_t len);
+
 
 /**
  * Log an error message and terminate program execution.

@@ -65,6 +65,20 @@ int accept_wrapper(int socket, struct sockaddr *client_addr, socklen_t *addr_len
     return client_socket;
 }
 
+int inet_pton_wrapper(int family, const char *strptr, struct in_addr *addrptr) {
+    if (inet_pton(family, strptr, addrptr) != 1) {
+        die_with_error("inet_pton() failed");
+    }
+    return 1;
+}
+
+const char * inet_ntop_wrapper(int family, const void *addrptr, char *strptr, socklen_t len) {
+    if (inet_ntop(family, addrptr, strptr, len) == NULL) {
+        die_with_error("inet_ntop error");
+    }
+    return strptr;
+}
+
 void close_wrapper(int socket) {
     if (close(socket) < 0) {
         die_with_error("close() failed");
