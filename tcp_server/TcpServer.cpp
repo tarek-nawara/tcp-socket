@@ -28,6 +28,7 @@ TcpServer::handle_tcp_client(int server_socket, struct sockaddr_in &server_addr,
     }
 
     req_buf[request_size] = '\0';
+    std::cout << "---Request body " << req_buf << std::endl;
     resolve_request(req_buf, (char *) url_buf, (char *) version_buf);
 
     std::cout << "---URL " << url_buf << " version " << version_buf << std::endl;
@@ -88,17 +89,17 @@ TcpServer::open_file(char *url_buf,
 
 
 void
-TcpServer::resolve_request(const char *reqbuf, char *urlbuf, char *versionbuf) {
+TcpServer::resolve_request(const char *req_buf, char *url_buf, char *version_buf) {
     const char *pos, *pos2;
 
     /* copy url */
-    pos = strchr(reqbuf, (int) ' ');
+    pos = strchr(req_buf, (int) ' ');
     pos2 = strchr(pos + 1, (int) ' ');
-    strncpy(urlbuf, pos + 1, pos2 - pos - 1);
-    urlbuf[pos2 - pos - 1] = '\0';
+    strncpy(url_buf, pos + 1, pos2 - pos - 1);
+    url_buf[pos2 - pos - 1] = '\0';
 
     /* copy version */
     pos = strchr(pos2 + 1, (int) '\r');
-    strncpy(versionbuf, pos2 + 1, pos - pos2 - 1);
-    versionbuf[pos - pos2 - 1] = '\0';
+    strncpy(version_buf, pos2 + 1, pos - pos2 - 1);
+    version_buf[pos - pos2 - 1] = '\0';
 }
