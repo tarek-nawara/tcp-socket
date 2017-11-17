@@ -1,19 +1,47 @@
-#include <stdio.h> /* for printf() and fprintf() */
-#include <sys/socket.h> /* for socket(), connect(), send(), and recv() */
-#include <arpa/inet.h> /* for sockaddr_in and inet_addr() */
-#include <stdlib.h> /* for atoi() */
-#include <string.h> /* for memset() */
-#include <unistd.h> /* for close() */
+#include <cstdio>
+#include <cstdlib>
+#include <iostream>
+#include <fstream>
+#include <vector>
+
 #include "socket_utils.h"
 #include "TcpClient.h"
 
 #define RCVBUFSIZE 32
 
-/* Size of receive buffer */
-/* Error handling function */
-int main(int argc, char *argv[])
-{
-    TcpClient *client = new TcpClient();
-	
+using namespace std;
+
+int main(int argc, char *argv[]) {
+//    if (argc > 3 || argc < 2) {
+//        utils::die_with_error("Invalid command line arguments");
+//    }
+//    TcpClient *client = new TcpClient(argv[1], argc == 3 ? atoi(argv[2]) : 80);
+//    fstream infile;
+//    infile.open ("client-input.txt");
+//    string line;
+//    while (!infile.eof()) {
+//        getline(infile, line);
+//        cout << line << endl;
+//        char file_name[20];
+//        char hostname[20];
+//        sscanf(line.c_str(), "%*s %s %s", file_name, hostname);
+//        if (line[0] == 'G') {
+//            client->send_get_request(hostname, file_name);
+//        } else if (line[0] == 'P') {
+//            client->send_post_request(hostname, file_name);
+//        } else {
+//            cerr << "[TcpClient::main] Unsupported HTTP method" << endl;
+//        }
+//    }
+    char str[] ="HTTP/1.1 200 OK\r\nContent-Length: 200\r\n\r\ndata data";
+    char * pch;
+    printf ("Splitting string \"%s\" into tokens:\n",str);
+    pch = strtok (str,"\\r\\n\\r\\n");
+    while (pch != NULL)
+    {
+        printf ("%s\n",pch);
+        pch = strtok (NULL, "\\r\\n\\r\\n");
+    }
+    return 0;
 }
 

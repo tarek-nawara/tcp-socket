@@ -17,6 +17,14 @@ private:
     void resolve_request(const char *req_buf, char *url_buf, char *version_buf);
     std::pair<int, bool> open_file(char *url_buf, char *resp_buf, char *version_buf) const;
     void resolve_success_response(int client_socket, int file_des) const;
+
+    void handle_get_request(int client_socket);
+
+    void append_to_file(const std::string &file_name, char *rcv_buf, ssize_t byte_rcv);
+
+    void handle_post_request(int client_socket, const std::string &file_name, long file_len);
+
+    void write_to_file(const std::string &file_name, char *rcv_buf, ssize_t byte_rcv);
 };
 
 
