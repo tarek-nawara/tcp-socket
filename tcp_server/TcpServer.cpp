@@ -36,9 +36,9 @@ TcpServer::handle_tcp_client(int server_socket, struct sockaddr_in &server_addr,
 
     const char *notfound_str = "404 File Not Found";
 
-    auto pair = open_file(url_buf, resp_buf, version_buf);
-    int file_des = pair.first;
-    bool read_ok = pair.second;
+    //auto pair = open_file(url_buf, resp_buf, version_buf);
+    //int file_des = pair.first;
+    //bool read_ok = pair.second;
 
 
     utils::write_wrapper(client_socket, resp_buf, strlen(resp_buf));
@@ -58,10 +58,10 @@ TcpServer::handle_tcp_client(int server_socket, struct sockaddr_in &server_addr,
 
 void
 TcpServer::resolve_success_response(int client_socket, int file_des) const {
-    ssize_t read_size;
-    void *read_buf = new char[MAXLINE + 1];
-    while ((read_size = utils::read_wrapper(file_des, read_buf, MAXLINE)) > 0)
-            utils::write_wrapper(client_socket, read_buf, read_size);
+    //ssize_t read_size;
+    //void *read_buf = new char[MAXLINE + 1];
+   // while ((read_size = utils::read_wrapper(file_des, read_buf, MAXLINE)) > 0)
+           // utils::write_wrapper(client_socket, read_buf, read_size);
 }
 
 

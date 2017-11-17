@@ -24,21 +24,17 @@ namespace utils {
     ssize_t send_wrapper(int socket,
                          const void *msg,
                          size_t msg_len,
-                         int flags,
-                         const struct sockaddr *foreign_addr,
-                         socklen_t addr_len) {
-        if (sendto(socket, msg, msg_len, flags, foreign_addr, addr_len) != msg_len) {
+                         int flags) {
+        if (send(socket, msg, msg_len, flags) != msg_len) {
             die_with_error("send() sent different number of bytes than expected");
         }
     }
 
-    ssize_t rcv_wrapper(int socket,
+    ssize_t recv_wrapper(int socket,
                         void *rcv_buffer,
                         size_t buffer_len,
-                        int flags,
-                        struct sockaddr *foreign_addr,
-                        socklen_t *addr_len) {
-        ssize_t total_rcv = recvfrom(socket, rcv_buffer, buffer_len, flags, foreign_addr, addr_len);
+                        int flags) {
+        ssize_t total_rcv = recv(socket, rcv_buffer, buffer_len, flags);
         if (total_rcv < 0) {
             die_with_error("recv() failed or connection closed  prematurely");
         }
@@ -73,7 +69,7 @@ namespace utils {
     }
 
     const char *inet_ntop_wrapper(int family, const void *addrptr, char *strptr, socklen_t len) {
-        if (inet_ntop(family, addrptr, strptr, len) == nullptr) {
+        if (inet_ntop(family, addrptr, strptr, len) == NULL) {
             die_with_error("inet_ntop error");
         }
         return strptr;

@@ -59,9 +59,7 @@ namespace utils {
     ssize_t send_wrapper(int socket,
                          const void *msg,
                          size_t msg_len,
-                         int flags,
-                         const struct sockaddr *foreign_addr,
-                         socklen_t addr_len);
+                         int flags);
 
     /**
      * Receive message from the given address.
@@ -74,12 +72,10 @@ namespace utils {
      * @param addr_len     length of the address structure = {@code sizeof(struct sockaddr_in)}
      * @return             -1 for failure, length of sent message for success
      */
-    ssize_t rcv_wrapper(int socket,
+    ssize_t recv_wrapper(int socket,
                         void *rcv_buffer,
                         size_t buffer_len,
-                        int flags,
-                        struct sockaddr *foreign_addr,
-                        socklen_t *addr_len);
+                        int flags);
 
     /**
      * Assign to the socket a local address and a port.
