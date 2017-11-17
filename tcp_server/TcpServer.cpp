@@ -120,7 +120,7 @@ TcpServer::file_size(const char *file_name) {
 // TODO check if will work
 void
 TcpServer::write_success_header(int client_socket, long data) {
-    std::string header = "HTTP/1.1 200 OK\r\nContent-Length:";
+    std::string header = "HTTP/1.1 200 OK\r\nContent-Length: ";
     header += std::to_string(data);
     header += "\r\n\r\n";
     utils::write_wrapper(client_socket, header.c_str(), header.size());

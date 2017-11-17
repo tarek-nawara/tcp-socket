@@ -20,7 +20,6 @@ using namespace std;
 
 class TcpClient {
 public:
-    typedef vector<int> Header;
     TcpClient(string ip_address, int port_number);
 
     void send_get_request(char *host_name, string file_name);

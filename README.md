@@ -14,6 +14,8 @@ after you run the server use curl as follows:
 - Handle request type correctly.
 - Timeout on server side.
     * Persistent connections
+        * Server don't close the connections after the serving the request.
+        * Client should use the same connection.
     * Dynamic according to number of opened connections
 - Fork or threads in both client and server
 
