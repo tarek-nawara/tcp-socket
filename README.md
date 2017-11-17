@@ -16,3 +16,6 @@ after you run the server use curl as follows:
     * Persistent connections
     * Dynamic according to number of opened connections
 - Fork or threads in both client and server
+
+#### General problems
+- Move duplicate functions to utils.
