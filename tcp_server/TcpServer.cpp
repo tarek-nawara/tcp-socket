@@ -12,11 +12,8 @@
 
 void
 TcpServer::handle_tcp_client(int server_socket, struct sockaddr_in &server_addr, struct sockaddr_in client_addr) {
-    char url_buf[MEDIUMLINE + 1];
-    char version_buf[MINILINE + 1];
     char client_addr_ip[INET_ADDRSTRLEN];
     auto *req_buf = new char[MAXLINE + 1];
-    auto *resp_buf = new char[MAXLINE + 1];
 
     socklen_t client_addr_len = sizeof(client_addr);
     int client_socket = utils::accept_wrapper(server_socket, (struct sockaddr *) &client_addr,
@@ -33,12 +30,9 @@ TcpServer::handle_tcp_client(int server_socket, struct sockaddr_in &server_addr,
 
     req_buf[request_size] = '\0';
     std::cout << "[handle_tcp_client]---Request body " << req_buf << std::endl;
-//    resolve_request(req_buf, (char *) url_buf, (char *) version_buf);
-//    std::cout << "[handle_tcp_client]---URL " << url_buf << " version " << version_buf << std::endl;
-//    std::cout << "[handle_tcp_client]---Requested file path: " << url_buf << std::endl;
 
     if (req_buf[0] == 'G') {
-        handle_get_request(client_socket);
+        handle_get_request(client_socket, req_buf);
     } else if (req_buf[0] == 'P') {
         char file_name[20];
         long file_len;
@@ -53,74 +47,26 @@ TcpServer::handle_tcp_client(int server_socket, struct sockaddr_in &server_addr,
 }
 
 void
-TcpServer::resolve_success_response(int client_socket, int file_des) const {
-    ssize_t read_size;
-    void *read_buf = new char[MAXLINE + 1];
-    while ((read_size = utils::read_wrapper(file_des, read_buf, MAXLINE)) > 0)
-        utils::write_wrapper(client_socket, read_buf, read_size);
-}
+TcpServer::handle_get_request(int client_socket, char *req_buf) {
+    char file_name[20];
+    sscanf(req_buf, "GET %s HTTP/1.1", file_name);
+    std::cout << "[handle_get_request]---Sending the GET file" << std::endl;
+    std::cout << "[handle_get_request]---File name=" << file_name << std::endl;
 
-
-std::pair<int, bool>
-TcpServer::open_file(char *url_buf,
-                     char *resp_buf,
-                     char *version_buf) const {
-    std::string status_code, phrase;
-    int file_des = open(url_buf, O_RDONLY);
-    bool read_ok;
-    if (file_des < 0) {
-        status_code = "404";
-        phrase = "Not Found";
-        read_ok = false;
-        std::cout << "---File " << url_buf << " not found, generate 404 Not Found response" << std::endl;
+    FILE *pFile;
+    if ((pFile = fopen(file_name, "r"))) {
+        std::cout << "File found, start sending the file" << std::endl;
+        long remain_data = file_size(file_name);
+        write_success_header(client_socket, remain_data);
+        off_t offset = 0;
+        ssize_t sent_bytes;
+        while (((sent_bytes = sendfile(client_socket, fileno(pFile), &offset, BUFSIZ)) > 0) && (remain_data > 0)) {
+            remain_data -= sent_bytes;
+        }
     } else {
-        status_code = "200";
-        phrase = "OK";
-        read_ok = true;
-        std::cout << "---File " << url_buf << " found, generate 200 Found response" << std::endl;
+        std::cout << "File not found" << std::endl;
+        write_fail_header(client_socket);
     }
-    sprintf(resp_buf, "%s %s %s\r\nConnection: closed\r\n\r\n", version_buf, status_code, phrase);
-    return {file_des, read_ok};
-}
-
-
-void
-TcpServer::resolve_request(const char *req_buf, char *url_buf, char *version_buf) {
-    const char *pos, *pos2;
-
-    /* copy url */
-    pos = strchr(req_buf, (int) ' ');
-    pos2 = strchr(pos + 1, (int) ' ');
-    strncpy(url_buf, pos + 1, pos2 - pos - 1);
-    url_buf[pos2 - pos - 1] = '\0';
-
-    /* copy version */
-    pos = strchr(pos2 + 1, (int) '\r');
-    strncpy(version_buf, pos2 + 1, pos - pos2 - 1);
-    version_buf[pos - pos2 - 1] = '\0';
-}
-
-void TcpServer::handle_get_request(int client_socket) {
-    //auto pair = open_file(url_buf, resp_buf, version_buf);
-    //int file_des = pair.first;
-    //bool read_ok = pair.second;
-    const char *echo_str = "hello world";
-    const char *notfound_str = "404 File Not Found";
-
-
-//    utils::write_wrapper(client_socket, resp_buf, strlen(resp_buf));
-//
-//    if (read_ok) {
-//        resolve_success_response(client_socket, file_des);
-//    } else {
-//        utils::write_wrapper(client_socket, notfound_str, strlen(notfound_str));
-//    }
-
-    utils::write_wrapper(client_socket, echo_str, strlen(echo_str));
-
-    std::cout << "---Response sent" << std::endl;
-//    if (read_ok)
-//        close(file_des);
     utils::close_wrapper(client_socket);
 }
 
@@ -162,4 +108,26 @@ TcpServer::append_to_file(const std::string &file_name, char *rcv_buf, ssize_t b
     outfile.open(file_name, std::ios_base::app);
     outfile.write(rcv_buf, byte_rcv);
     outfile.close();
+}
+
+long
+TcpServer::file_size(const char *file_name) {
+    struct stat stat_buf;
+    int rc = stat(file_name, &stat_buf);
+    return rc == 0 ? stat_buf.st_size : -1;
+}
+
+// TODO check if will work
+void
+TcpServer::write_success_header(int client_socket, long data) {
+    std::string header = "HTTP/1.1 200 OK\r\nContent-Length:";
+    header += std::to_string(data);
+    header += "\r\n\r\n";
+    utils::write_wrapper(client_socket, header.c_str(), header.size());
+}
+
+void
+TcpServer::write_fail_header(int client_socket) {
+    std::string header = "HTTP/1.1 404 Not Found\r\n\r\n";
+    utils::write_wrapper(client_socket, header.c_str(), header.size());
 }

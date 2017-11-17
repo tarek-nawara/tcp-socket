@@ -13,18 +13,20 @@
 #ifndef SOCKET_PROGRAMMING_TCPCLIENT_H
 #define SOCKET_PROGRAMMING_TCPCLIENT_H
 #define RCVBUFSIZE 32
+#define STATUS_INDEX 0
+#define CONTENT_INDEX 1
 
 using namespace std;
 
 class TcpClient {
 public:
+    typedef vector<int> Header;
     TcpClient(string ip_address, int port_number);
 
     void send_get_request(char *host_name, string file_name);
 
     void send_post_request(char *host_name, string file_path);
 
-    vector<string> * split_string(string input, const char* delimiter);
 private:
     string ip_address;
     int port_number;
@@ -39,11 +41,11 @@ private:
 
     void init_server_addr(sockaddr_in &server_addr);
 
+    vector<int> * read_header(int socket, const string &file_name);
 
-    void read_header(int socket, const string &file_name);
+    vector<string> *split_header(string headers);
 
-    vector<string> * split(const string &input);
-
+    vector<int> * parse_header(string header);
 };
 
 

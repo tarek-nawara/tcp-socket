@@ -26,15 +26,20 @@ TcpClient::send_get_request(char *host_name, string file_name) {
     /* Start sending */
     connect_wrapper(sock, (struct sockaddr *) &server_addr, sizeof(server_addr));
     req_buf = new char[200];
-    int req_buf_len = sprintf(req_buf, "GET /%s HTTP/1.1\r\nHOST: %s:%d\r\n\r\n", file_name.c_str(), host_name,
+    int req_buf_len = sprintf(req_buf, "GET %s HTTP/1.1\r\nHOST: %s:%d\r\n\r\n", file_name.c_str(), host_name,
                               port_number);
     send_wrapper(sock, req_buf, req_buf_len, 0);
 
     cout << "Received: ";
     char rcv_buf[100];
     int total_byte_rcv = 0;
-    // TODO find correct condition
-    while (total_byte_rcv < 11) {
+    auto *header = read_header(sock, file_name);
+    if ((*header)[0] != 200) {
+        cout << "Get request failed to retrieve file" << endl;
+        cout << "HTTP status: " << (*header)[0] << endl;
+        return;
+    }
+    while (total_byte_rcv < (*header)[1]) {
         ssize_t byte_rcv = recv_wrapper(sock, rcv_buf, RCVBUFSIZE - 1, 0);
         total_byte_rcv += byte_rcv;
         rcv_buf[byte_rcv] = '\0';
@@ -118,61 +123,48 @@ TcpClient::resolve_post_file(int sock, string file_name) {
     }
 }
 
-void
+vector<int> *
 TcpClient::read_header(int socket, const string &file_name) {
-//    bool end_of_header = false;
-//    string header = "";
-//    char rcv_buf[100];
-//    while (!end_of_header) {
-//        ssize_t byte_rcv = recv_wrapper(socket, rcv_buf, RCVBUFSIZE - 1, 0);
-//        rcv_buf[byte_rcv] = '\0';
-//        string token(rcv_buf);
-//        header += token;
-//        if (header.find("\r\n")) {
-//            end_of_header = true;
-//            auto *split_strs = split(header);
-//            int resp_status;
-//            int content_len;
-//            sscanf(&(split_strs)[0], "HTTP/1.1 %d", &resp_status);
-//            if (resp_status == 200) {
-//                sscanf(&(split_strs)[6], "Content-Length: %d", &content_len);
-//                char rcv_buf[100];
-//                int total_byte_rcv = 0;
-//
-//                while (total_byte_rcv < content_len) {
-//                    ssize_t byte_rcv = recv_wrapper(socket, rcv_buf, RCVBUFSIZE - 1, 0);
-//                    total_byte_rcv += byte_rcv;
-//                    rcv_buf[byte_rcv] = '\0';
-//                    printf("%s", rcv_buf);
-//                    append_to_file(file_name, rcv_buf, byte_rcv);
-//                }
-//            }
-//        }
-//        printf("%s", rcv_buf);
-//        append_to_file(file_name, rcv_buf, byte_rcv);
-//    }
+    bool end_of_header = false;
+    string header = "";
+    char rcv_buf[100];
+
+    auto *res = new vector<int>();
+    while (!end_of_header) {
+        ssize_t byte_rcv = recv_wrapper(socket, rcv_buf, 1, 0);
+        rcv_buf[byte_rcv] = '\0';
+        string token(rcv_buf);
+        header += token;
+        size_t found = header.find("\r\n\r\n");
+        if (found != string::npos) {
+            end_of_header = true;
+            res = parse_header(header.substr(0, header.length() - 4));
+        }
+    }
+    return res;
 }
 
-vector<string> *
-TcpClient::split_string(string input, const char* delimiter) {
-//    char *pch;
-//    pch = strtok(input, "\r\n\r\n");
-//    auto *res = new vector<string>();
-//    while (pch != NULL) {
-//        string token(pch);
-//        res->push_back(token);
-//        pch = strtok(NULL, delimiter);
-//    }
-    vector<string> *res;
+vector<int> *
+TcpClient::parse_header(string header) {
+    int resp_status;
+    int content_len = 0;
+    auto *res = new vector<int>();
+    auto *split_strs = split_header(header);
+    sscanf((*split_strs)[STATUS_INDEX].c_str(), "HTTP/1.1 %d", &resp_status);
+    res->push_back(resp_status);
+    if (resp_status == 200) {
+        sscanf((*split_strs)[CONTENT_INDEX].c_str(), "Content-Length: %d", &content_len);
+    }
+    res->push_back(content_len);
     return res;
 }
 
 vector<string> *
-TcpClient::split(const string &input) {
-    istringstream MyStream(input);
-    auto *v = new vector<string>();
+TcpClient::split_header(string headers) {
+    istringstream MyStream(headers);
+    vector<string> *v = new vector<string>();
     string s;
-    while (std::getline(MyStream, s)) {
+    while (getline(MyStream, s)) {
         v->push_back(s);
     }
     return v;
