@@ -4,6 +4,7 @@
  * Created Date: 2017-11-15
  */
 
+#include <algorithm>
 #include "socket_utils.h"
 
 namespace utils {
@@ -31,9 +32,9 @@ namespace utils {
     }
 
     ssize_t recv_wrapper(int socket,
-                        void *rcv_buffer,
-                        size_t buffer_len,
-                        int flags) {
+                         void *rcv_buffer,
+                         size_t buffer_len,
+                         int flags) {
         ssize_t total_rcv = recv(socket, rcv_buffer, buffer_len, flags);
         if (total_rcv < 0) {
             die_with_error("recv() failed or connection closed  prematurely");
@@ -112,9 +113,41 @@ namespace utils {
     }
 
     void write_to_file(const std::string &file_name, char *rcv_buf, ssize_t byte_rcv) {
-        std::ofstream outfile (file_name);
+        std::ofstream outfile(file_name);
         outfile.write(rcv_buf, byte_rcv);
         outfile.close();
+    }
+
+    pid_t fork_wrapper() {
+        pid_t process_id;
+        if ((process_id = fork()) < 0) {
+            die_with_error("fork() failed");
+        }
+        return process_id;
+    }
+
+    pid_t waitpid_wrapper() {
+        pid_t process_id = waitpid((pid_t) -1, NULL, WNOHANG);
+        if (process_id < 0) {
+            die_with_error("waitpid() failed");
+        }
+        return process_id;
+    }
+
+    std::string &left_trim(std::string &s) {
+        s.erase(s.begin(), std::find_if(s.begin(), s.end(),
+                                        std::not1(std::ptr_fun<int, int>(std::isspace))));
+        return s;
+    }
+
+    std::string &right_trim(std::string &s) {
+        s.erase(std::find_if(s.rbegin(), s.rend(),
+                             std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+        return s;
+    }
+
+    std::string &trim(std::string &s) {
+        return left_trim(right_trim(s));
     }
 
     void die_with_error(const char *error_msg) {

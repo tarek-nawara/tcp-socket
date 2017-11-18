@@ -9,7 +9,6 @@
 #define SERVER_PORT 5000
 
 int main(int argc, char *argv[]) {
-    struct sockaddr_in client_addr;
     struct sockaddr_in server_addr;
     std::cout << "---Server Starting---" << std::endl;
     int server_socket = utils::socket_wrapper();
@@ -24,7 +23,7 @@ int main(int argc, char *argv[]) {
 
     while(true) {
         std::cout << "Handling client {ip:port} " << inet_ntoa(server_addr.sin_addr) << ":" << SERVER_PORT << std::endl;
-        tcp_server.handle_tcp_client(server_socket, server_addr, client_addr);
+        tcp_server.handle_tcp_client_fork(server_socket, server_addr);
     }
 
     return 0;

@@ -4,20 +4,41 @@
  * Created Date: 2017-11-16
  */
 
-#include <fstream>
-#include <sstream>
 #include "TcpServer.h"
 
 #define RCVBUFSIZE 32
 
 void
-TcpServer::handle_tcp_client(int server_socket, struct sockaddr_in &server_addr, struct sockaddr_in client_addr) {
-    char client_addr_ip[INET_ADDRSTRLEN];
-    auto *req_buf = new char[MAXLINE + 1];
+TcpServer::handle_tcp_client_fork(int server_socket, struct sockaddr_in &server_addr) {
+    struct sockaddr_in client_addr;
 
     socklen_t client_addr_len = sizeof(client_addr);
     int client_socket = utils::accept_wrapper(server_socket, (struct sockaddr *) &client_addr,
                                               &client_addr_len);
+    process_id = utils::fork_wrapper();
+    if (process_id == 0) {
+        std::cout << "[handle_tcp_client_fork]---Start serving the request from the child" << std::endl;
+        handle_tcp_client(client_socket, client_addr);
+        exit(0);
+    }
+
+    std::cout << "[handle_tcp_client_fork]---With child process: " << process_id << std::endl;
+    ++child_count;
+    while (child_count > 0) {
+        process_id = utils::waitpid_wrapper();
+        if (process_id == 0) {
+            break;
+        } else {
+            std::cout << "[handle_tcp_client_fork]---Closing child with process id: " << process_id << std::endl;
+            --child_count;
+        }
+    }
+}
+
+void
+TcpServer::handle_tcp_client(int client_socket, struct sockaddr_in client_addr) {
+    char client_addr_ip[INET_ADDRSTRLEN];
+    auto *req_buf = new char[MAXLINE + 1];
 
     utils::inet_ntop_wrapper(AF_INET, &client_addr.sin_addr, client_addr_ip, INET_ADDRSTRLEN);
     std::cout << "[handle_tcp_client]---Request comes from IP: " << client_addr_ip << std::endl;
@@ -33,13 +54,14 @@ TcpServer::handle_tcp_client(int server_socket, struct sockaddr_in &server_addr,
 
     if (req_buf[0] == 'G') {
         handle_get_request(client_socket, req_buf);
+        std::cout << "[handle_tcp_client]---Finished serving GET request" << std::endl;
     } else if (req_buf[0] == 'P') {
         char file_name[20];
         long file_len;
         sscanf(req_buf, "POST %s HTTP/1.1\r\nHOST: %*s\r\nContent-Length: %ld\r\n\r\n", file_name, &file_len);
-        std::cout << "[handle_tcp_client]---Request=" << req_buf << std::endl;
         std::cout << "[handle_tcp_client]---POST file name=" << file_name << " file length=" << file_len << std::endl;
         handle_post_request(client_socket, file_name, file_len);
+        std::cout << "[handle_tcp_client]---Finished serving POST request" << std::endl;
     } else {
         std::cout << "[handle_tcp_client]---Error unsupported HTTP method, ignoring" << std::endl;
         std::cout << "[handle_tcp_client]---Connection with IP" << client_addr_ip << " closed" << std::endl;

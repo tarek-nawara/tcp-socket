@@ -28,6 +28,7 @@
 #include <utility>
 #include <vector>
 #include <sys/sendfile.h>
+#include <sys/wait.h>
 
 #define MAXLINE 4096
 #define MEDIUMLINE 256
@@ -135,6 +136,15 @@ namespace utils {
 
     void write_to_file(const std::string &file_name, char *rcv_buf, ssize_t byte_rcv);
 
+    pid_t fork_wrapper();
+
+    pid_t waitpid_wrapper();
+
+    std::string &left_trim(std::string &s);
+
+    std::string &right_trim(std::string &s);
+
+    std::string &trim(std::string &s);
 
     /**
      * Log an error message and terminate program execution.

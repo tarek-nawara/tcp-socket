@@ -20,6 +20,10 @@ int main(int argc, char *argv[]) {
     string line;
     while (!infile.eof()) {
         getline(infile, line);
+        line = utils::trim(line);
+        if (line.empty()) {
+            continue;
+        }
         cout << line << endl;
         char file_name[20];
         char hostname[20];

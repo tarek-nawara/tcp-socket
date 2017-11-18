@@ -9,15 +9,16 @@ after you run the server use curl as follows:
 ##### Client Issues
 
 - Fix client timeout problem based on response size. (considered)
+- Skip whitespaces in commands file.
+- Handle port number optional. (ask)
 
 #### Server Issues
-- Handle request type correctly.
+- Handle request type in better way.
+- Implement HTTP/1.1.
 - Timeout on server side.
-    * Persistent connections
+- Persistent connections
         * Server don't close the connections after the serving the request.
         * Client should use the same connection.
     * Dynamic according to number of opened connections
-- Fork or threads in both client and server
 
 #### General problems
-- Move duplicate functions to utils.

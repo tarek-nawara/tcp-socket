@@ -34,12 +34,18 @@ TcpClient::send_get_request(char *host_name, string file_name) {
         cout << "HTTP status: " << (*header)[0] << endl;
         return;
     }
+    bool first_write = true;
     while (total_byte_rcv < (*header)[1]) {
         ssize_t byte_rcv = recv_wrapper(sock, rcv_buf, RCVBUFSIZE - 1, 0);
         total_byte_rcv += byte_rcv;
         rcv_buf[byte_rcv] = '\0';
         printf("%s", rcv_buf);
-        append_to_file(file_name, rcv_buf, byte_rcv);
+        if (first_write) {
+            write_to_file(file_name, rcv_buf, byte_rcv);
+        } else {
+            append_to_file(file_name, rcv_buf, byte_rcv);
+        }
+        first_write = false;
     }
     printf("\n");
     close(sock);
