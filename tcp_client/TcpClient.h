@@ -18,27 +18,26 @@ using namespace utils;
 
 class TcpClient {
 public:
-    TcpClient(string ip_address, int port_number);
+    explicit TcpClient(int port_number);
 
-    void send_get_request(char *host_name, string file_name);
+    void send_get_request(char *host_name, string file_name, int server_socket);
 
-    void send_post_request(char *host_name, string file_path);
+    void send_post_request(char *host_name, string file_name, int server_socket);
 
 private:
-    string ip_address;
     int port_number;
 
     bool rcv_ack(int socket);
 
     void resolve_post_file(int sock, string file_name);
 
-    void init_server_addr(sockaddr_in &server_addr);
 
     vector<int> * read_header(int socket, const string &file_name);
 
     vector<string> *split_header(string headers);
 
     vector<int> * parse_header(string header);
+
 };
 
 

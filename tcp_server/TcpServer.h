@@ -9,6 +9,9 @@
 
 #include "socket_utils.h"
 
+#define RCVBUFSIZE 32
+#define MAX_WAIT_TIME 10
+
 class TcpServer {
 public:
     void handle_tcp_client_fork(int server_socket, sockaddr_in &server_addr);
@@ -26,6 +29,12 @@ private:
     static int *child_count;
 
     pid_t process_id = 0;
+
+    bool handle_single_request(int client_socket, const char *client_addr_ip);
+
+    int set_connection_time_out(int client_socket);
+
+    int calculate_time_out();
 };
 
 

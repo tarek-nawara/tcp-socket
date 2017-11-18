@@ -6,29 +6,21 @@
 
 #include "TcpClient.h"
 
-TcpClient::TcpClient(string ip_address, int port_number) {
-    this->ip_address = std::move(ip_address);
+TcpClient::TcpClient(int port_number) {
     this->port_number = port_number;
 }
 
 void
-TcpClient::send_get_request(char *host_name, string file_name) {
-    struct sockaddr_in server_addr;
-    char *req_buf;
-    int sock = socket_wrapper();
-    init_server_addr(server_addr);
-
-    /* Start sending */
-    connect_wrapper(sock, (struct sockaddr *) &server_addr, sizeof(server_addr));
-    req_buf = new char[200];
+TcpClient::send_get_request(char *host_name, string file_name, int server_socket) {
+    auto *req_buf = new char[200];
     int req_buf_len = sprintf(req_buf, "GET %s HTTP/1.1\r\nHOST: %s:%d\r\n\r\n", file_name.c_str(), host_name,
                               port_number);
-    send_wrapper(sock, req_buf, req_buf_len, 0);
+    send_wrapper(server_socket, req_buf, req_buf_len, 0);
 
     cout << "Received: ";
     char rcv_buf[100];
     int total_byte_rcv = 0;
-    auto *header = read_header(sock, file_name);
+    auto *header = read_header(server_socket, file_name);
     if ((*header)[0] != 200) {
         cout << "Get request failed to retrieve file" << endl;
         cout << "HTTP status: " << (*header)[0] << endl;
@@ -36,7 +28,7 @@ TcpClient::send_get_request(char *host_name, string file_name) {
     }
     bool first_write = true;
     while (total_byte_rcv < (*header)[1]) {
-        ssize_t byte_rcv = recv_wrapper(sock, rcv_buf, RCVBUFSIZE - 1, 0);
+        ssize_t byte_rcv = recv_wrapper(server_socket, rcv_buf, RCVBUFSIZE - 1, 0);
         total_byte_rcv += byte_rcv;
         rcv_buf[byte_rcv] = '\0';
         printf("%s", rcv_buf);
@@ -48,39 +40,25 @@ TcpClient::send_get_request(char *host_name, string file_name) {
         first_write = false;
     }
     printf("\n");
-    close(sock);
+    delete[] req_buf;
 }
 
 void
-TcpClient::init_server_addr(sockaddr_in &server_addr) {
-    memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = inet_addr(ip_address.c_str());
-    server_addr.sin_port = htons(port_number);
-}
-
-void
-TcpClient::send_post_request(char *host_name, string file_name) {
-    struct sockaddr_in server_addr;
-    char *req_buf;
-    int sock = socket_wrapper();
-    init_server_addr(server_addr);
-
-    /* Start sending */
-    connect_wrapper(sock, (struct sockaddr *) &server_addr, sizeof(server_addr));
-    req_buf = new char[200];
+TcpClient::send_post_request(char *host_name, string file_name, int server_socket) {
+    auto *req_buf = new char[200];
     long file_len = file_size(file_name);
     int req_buf_len = sprintf(req_buf, "POST %s HTTP/1.1\r\nHOST: %s\r\nContent-Length: %ld\r\n\r\n", file_name.c_str(),
                               host_name, file_len);
     cout << "file_len=" << file_len << endl;
-    send_wrapper(sock, req_buf, req_buf_len, 0);
+    send_wrapper(server_socket, req_buf, req_buf_len, 0);
 
-    bool ack = rcv_ack(sock);
+    bool ack = rcv_ack(server_socket);
     if (ack) {
-        resolve_post_file(sock, file_name);
+        resolve_post_file(server_socket, file_name);
     } else {
         cout << "failed to send POST request" << endl;
     }
+    delete[] req_buf;
 }
 
 bool

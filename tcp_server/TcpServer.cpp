@@ -7,10 +7,8 @@
 #include <sys/mman.h>
 #include "TcpServer.h"
 
-#define RCVBUFSIZE 32
-
-int * TcpServer::child_count = static_cast<int *>(mmap(NULL, sizeof *child_count, PROT_READ | PROT_WRITE,
-                                  MAP_SHARED | MAP_ANONYMOUS, -1, 0));
+int *TcpServer::child_count = static_cast<int *>(mmap(NULL, sizeof *child_count, PROT_READ | PROT_WRITE,
+                                                      MAP_SHARED | MAP_ANONYMOUS, -1, 0));
 
 void
 TcpServer::handle_tcp_client_fork(int server_socket, struct sockaddr_in &server_addr) {
@@ -22,12 +20,6 @@ TcpServer::handle_tcp_client_fork(int server_socket, struct sockaddr_in &server_
     process_id = utils::fork_wrapper();
     if (process_id == 0) {
         std::cout << "[handle_tcp_client_fork]---Start serving the request from the child" << std::endl;
-
-        struct timeval timeout;
-        timeout.tv_sec = 10;
-        timeout.tv_usec = 0;
-        setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
-
         handle_tcp_client(client_socket, client_addr);
         exit(0);
     }
@@ -48,33 +40,55 @@ TcpServer::handle_tcp_client_fork(int server_socket, struct sockaddr_in &server_
 
 void
 TcpServer::handle_tcp_client(int client_socket, struct sockaddr_in client_addr) {
-    while (true) {
-        char client_addr_ip[INET_ADDRSTRLEN];
-        auto *req_buf = new char[MAXLINE + 1];
-
+    bool client_closed_con = false;
+    char client_addr_ip[INET_ADDRSTRLEN];
+    while (!client_closed_con) {
         utils::inet_ntop_wrapper(AF_INET, &client_addr.sin_addr, client_addr_ip, INET_ADDRSTRLEN);
         std::cout << "[handle_tcp_client]---Request comes from IP: " << client_addr_ip << std::endl;
-        ssize_t request_size = utils::recv_wrapper(client_socket, req_buf, MAXLINE, 0);
-
-        req_buf[request_size] = '\0';
-        std::cout << "[handle_tcp_client]---Request body " << req_buf << std::endl;
-
-        if (req_buf[0] == 'G') {
-            handle_get_request(client_socket, req_buf);
-            std::cout << "[handle_tcp_client]---Finished serving GET request" << std::endl;
-        } else if (req_buf[0] == 'P') {
-            char file_name[20];
-            long file_len;
-            sscanf(req_buf, "POST %s HTTP/1.1\r\nHOST: %*s\r\nContent-Length: %ld\r\n\r\n", file_name, &file_len);
-            std::cout << "[handle_tcp_client]---POST file name=" << file_name << " file length=" << file_len
-                      << std::endl;
-            handle_post_request(client_socket, file_name, file_len);
-            std::cout << "[handle_tcp_client]---Finished serving POST request" << std::endl;
+        int con_timeout_res = set_connection_time_out(client_socket);
+        if (con_timeout_res == -1) {
+            std::cout << "[handle_tcp_client]---Select error happened" << std::endl;
+            utils::die_with_error("[handle_tcp_client]--set_connection_time_out() failed");
+            return;
+        } else if (con_timeout_res == 0) {
+            std::cout << "[handle_tcp_client]---Connection closed due to timeout" << std::endl;
+            utils::close_wrapper(client_socket);
+            return;
         } else {
-            std::cout << "[handle_tcp_client]---Error unsupported HTTP method, ignoring" << std::endl;
-            std::cout << "[handle_tcp_client]---Connection with IP" << client_addr_ip << " closed" << std::endl;
+            client_closed_con = handle_single_request(client_socket, client_addr_ip);
         }
     }
+    utils::close_wrapper(client_socket);
+}
+
+bool
+TcpServer::handle_single_request(int client_socket, const char *client_addr_ip) {
+    auto *req_buf = new char[MAXLINE + 1];
+    ssize_t request_size = utils::recv_wrapper(client_socket, req_buf, MAXLINE, 0);
+
+    if (request_size <= 0) {
+	std::cout << "[handle_single_request]---Client closed connection" << std::endl;
+        return true;
+    }
+
+    req_buf[request_size] = '\0';
+    std::cout << "[handle_single_request]---Request body:\"" << req_buf << "\"" << std::endl;
+    if (req_buf[0] == 'G') {
+        handle_get_request(client_socket, req_buf);
+        std::cout << "[handle_single_request]---Finished serving GET request" << std::endl;
+    } else if (req_buf[0] == 'P') {
+        char file_name[20];
+        long file_len;
+        sscanf(req_buf, "POST %s HTTP/1.1\r\nHOST: %*s\r\nContent-Length: %ld\r\n\r\n", file_name, &file_len);
+        std::cout << "[handle_tcp_client]---POST file name=" << file_name << " file length=" << file_len
+                  << std::endl;
+        handle_post_request(client_socket, file_name, file_len);
+        std::cout << "[handle_single_request]---Finished serving POST request" << std::endl;
+    } else {
+        std::cout << "[handle_single_request]---Error unsupported HTTP method, ignoring" << std::endl;
+        std::cout << "[handle_single_request]---Connection with IP" << client_addr_ip << " closed" << std::endl;
+    }
+    return false;
 }
 
 void
@@ -116,12 +130,27 @@ TcpServer::handle_post_request(int client_socket, const std::string &file_name, 
         total_byte_rcv += byte_rcv;
         rcv_buf[byte_rcv] = '\0';
         if (first_write) {
-           utils::write_to_file(file_name, rcv_buf, byte_rcv);
+            utils::write_to_file(file_name, rcv_buf, byte_rcv);
         } else {
             utils::append_to_file(file_name, rcv_buf, byte_rcv);
         }
         first_write = false;
     }
+}
+
+int
+TcpServer::set_connection_time_out(int client_socket) {
+    fd_set set;
+    FD_ZERO(&set);
+    FD_SET(client_socket, &set);
+    struct timeval timeout = { calculate_time_out(), 0 };
+    return select(client_socket + 1, &set, NULL, NULL, &timeout);
+}
+
+int
+TcpServer::calculate_time_out() {
+
+    return 2 + (MAX_WAIT_TIME / (*child_count + 1));
 }
 
 void
