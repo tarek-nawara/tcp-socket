@@ -1,0 +1,20 @@
+external Documentation:
+
+overall organization:
+the code is divided into 3 parts:
+	client
+		client_main: responsible for reading a file of GET and POST commands and execute them.
+		TCPClient: the client has 2 methods one for issueing GET commands and other for issueing POST commands.
+	server
+		server_main: responsible for starting the server and maintain the loop of the server.
+		TCPServer: server has a method for hadnling tcp client requests and it forks a new process for each GET or POST request. and maintains a count for number of procceses.
+	utility
+		provides a clean API to handle opining and closing sockets, sending, receiving data over a socket.
+
+
+major data structures used: arrays, dynamic arrays (vector).
+
+assumptions:
+	the client input file name is client-input.txt
+	we used multi process approach for handling the multi-threaded web server. we used shared memory between the processes for the number of child processes.
+
