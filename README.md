@@ -10,6 +10,8 @@ first build ``utils`` then build both ``tcp_client`` and ``tcp_server``
 #### How to run client and server
 for running the server, ``./tcp_server <port number>``
 for running the client, ``./tcp_client <host id> <port number>``.
+
+to test using curl ``curl -X GET 'http://0.0.0.0:5000/<path to file>'``
 ### current Issues
 ##### Client Issues
 
