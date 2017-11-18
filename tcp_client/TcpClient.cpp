@@ -4,12 +4,7 @@
  * Created Date: 2017-11-15
  */
 
-#include <fstream>
-#include <sstream>
-#include <vector>
 #include "TcpClient.h"
-
-using namespace utils;
 
 TcpClient::TcpClient(string ip_address, int port_number) {
     this->ip_address = std::move(ip_address);
@@ -80,21 +75,6 @@ TcpClient::send_post_request(char *host_name, string file_name) {
     } else {
         cout << "failed to send POST request" << endl;
     }
-}
-
-void
-TcpClient::append_to_file(const string &file_name, char *rcv_buf, ssize_t byte_rcv) {
-    ofstream outfile;
-    outfile.open(file_name, ios_base::app);
-    outfile.write(rcv_buf, byte_rcv);
-    outfile.close();
-}
-
-long
-TcpClient::file_size(const string &filename) {
-    struct stat stat_buf;
-    int rc = stat(filename.c_str(), &stat_buf);
-    return rc == 0 ? stat_buf.st_size : -1;
 }
 
 bool

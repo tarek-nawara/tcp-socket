@@ -56,7 +56,7 @@ TcpServer::handle_get_request(int client_socket, char *req_buf) {
     FILE *pFile;
     if ((pFile = fopen(file_name, "r"))) {
         std::cout << "File found, start sending the file" << std::endl;
-        long remain_data = file_size(file_name);
+        long remain_data = utils::file_size(file_name);
         write_success_header(client_socket, remain_data);
         off_t offset = 0;
         ssize_t sent_bytes;
@@ -86,38 +86,15 @@ TcpServer::handle_post_request(int client_socket, const std::string &file_name, 
         total_byte_rcv += byte_rcv;
         rcv_buf[byte_rcv] = '\0';
         if (first_write) {
-           write_to_file(file_name, rcv_buf, byte_rcv);
+           utils::write_to_file(file_name, rcv_buf, byte_rcv);
         } else {
-            append_to_file(file_name, rcv_buf, byte_rcv);
+            utils::append_to_file(file_name, rcv_buf, byte_rcv);
         }
         first_write = false;
     }
     utils::close_wrapper(client_socket);
 }
 
-void
-TcpServer::write_to_file(const std::string &file_name, char *rcv_buf, ssize_t byte_rcv) {
-    std::ofstream outfile (file_name);
-    outfile.write(rcv_buf, byte_rcv);
-    outfile.close();
-}
-
-void
-TcpServer::append_to_file(const std::string &file_name, char *rcv_buf, ssize_t byte_rcv) {
-    std::ofstream outfile;
-    outfile.open(file_name, std::ios_base::app);
-    outfile.write(rcv_buf, byte_rcv);
-    outfile.close();
-}
-
-long
-TcpServer::file_size(const char *file_name) {
-    struct stat stat_buf;
-    int rc = stat(file_name, &stat_buf);
-    return rc == 0 ? stat_buf.st_size : -1;
-}
-
-// TODO check if will work
 void
 TcpServer::write_success_header(int client_socket, long data) {
     std::string header = "HTTP/1.1 200 OK\r\nContent-Length: ";

@@ -98,6 +98,24 @@ namespace utils {
         }
     }
 
+    long file_size(const std::string &filename) {
+        struct stat stat_buf;
+        int rc = stat(filename.c_str(), &stat_buf);
+        return rc == 0 ? stat_buf.st_size : -1;
+    }
+
+    void append_to_file(const std::string &file_name, char *rcv_buf, ssize_t byte_rcv) {
+        std::ofstream outfile;
+        outfile.open(file_name, std::ios_base::app);
+        outfile.write(rcv_buf, byte_rcv);
+        outfile.close();
+    }
+
+    void write_to_file(const std::string &file_name, char *rcv_buf, ssize_t byte_rcv) {
+        std::ofstream outfile (file_name);
+        outfile.write(rcv_buf, byte_rcv);
+        outfile.close();
+    }
 
     void die_with_error(const char *error_msg) {
         perror(error_msg);

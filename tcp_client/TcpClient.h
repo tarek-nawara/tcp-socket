@@ -4,19 +4,17 @@
  * Created Date: 2017-11-15
  */
 
-#include "socket_utils.h"
-#include <iostream>
-#include <utility>
-#include <cstdio>
-#include <sys/sendfile.h>
-
 #ifndef SOCKET_PROGRAMMING_TCPCLIENT_H
 #define SOCKET_PROGRAMMING_TCPCLIENT_H
+
+#include "socket_utils.h"
+
 #define RCVBUFSIZE 32
 #define STATUS_INDEX 0
 #define CONTENT_INDEX 1
 
 using namespace std;
+using namespace utils;
 
 class TcpClient {
 public:
@@ -29,10 +27,6 @@ public:
 private:
     string ip_address;
     int port_number;
-
-    void append_to_file(const string &file_name, char *rcv_buf, ssize_t byte_rcv);
-
-    long file_size(const string &filename);
 
     bool rcv_ack(int socket);
 

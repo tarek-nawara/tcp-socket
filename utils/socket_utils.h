@@ -17,10 +17,17 @@
 #include <cstdarg>
 #include <arpa/inet.h>
 #include <strings.h>
+#include <string>
+#include <iostream>
 #include <cstring>
+#include <ostream>
+#include <fstream>
+#include <sstream>
 #include <fcntl.h>
 #include <cstdlib>
 #include <utility>
+#include <vector>
+#include <sys/sendfile.h>
 
 #define MAXLINE 4096
 #define MEDIUMLINE 256
@@ -121,6 +128,12 @@ namespace utils {
     ssize_t read_wrapper(int filedes, void *buf, size_t nbytes);
 
     ssize_t write_wrapper(int filedes, const void *buf, size_t nbytes);
+
+    long file_size(const std::string &filename);
+
+    void append_to_file(const std::string &file_name, char *rcv_buf, ssize_t byte_rcv);
+
+    void write_to_file(const std::string &file_name, char *rcv_buf, ssize_t byte_rcv);
 
 
     /**
