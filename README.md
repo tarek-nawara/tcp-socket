@@ -9,7 +9,6 @@ after you run the server use curl as follows:
 ##### Client Issues
 
 - Fix client timeout problem based on response size. (considered)
-- Skip whitespaces in commands file.
 - Handle port number optional. (ask)
 
 #### Server Issues

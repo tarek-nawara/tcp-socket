@@ -23,7 +23,7 @@ private:
 
     void handle_tcp_client(int client_socket, sockaddr_in client_addr);
 
-    int child_count = 0;
+    static int *child_count;
 
     pid_t process_id = 0;
 };
