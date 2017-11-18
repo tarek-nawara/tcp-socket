@@ -20,7 +20,7 @@ TcpClient::send_get_request(char *host_name, string file_name, int server_socket
     cout << "Received: ";
     char rcv_buf[100];
     int total_byte_rcv = 0;
-    auto *header = read_header(server_socket, file_name);
+    auto *header = read_header(server_socket);
     if ((*header)[0] != 200) {
         cout << "Get request failed to retrieve file" << endl;
         cout << "HTTP status: " << (*header)[0] << endl;
@@ -64,12 +64,11 @@ TcpClient::send_post_request(char *host_name, string file_name, int server_socke
 bool
 TcpClient::rcv_ack(int socket) {
     auto *resp_buf = new char[100];
-    recv(socket, resp_buf, 100, 0); /* make sure to get the exact response */
+    recv(socket, resp_buf, 100, 0);
     int resp_status;
     sscanf(resp_buf, "HTTP/1.1 %d OK\r\n", &resp_status);
     cout << "---Response on POST request status: " << resp_status << endl;
 
-    /* scanning response to learn its type */
     delete[] resp_buf;
     return resp_status == 200;
 }
@@ -88,7 +87,7 @@ TcpClient::resolve_post_file(int sock, string file_name) {
 }
 
 vector<int> *
-TcpClient::read_header(int socket, const string &file_name) {
+TcpClient::read_header(int socket) {
     bool end_of_header = false;
     string header = "";
     char rcv_buf[100];

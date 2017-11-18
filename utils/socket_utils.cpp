@@ -4,7 +4,6 @@
  * Created Date: 2017-11-15
  */
 
-#include <algorithm>
 #include "socket_utils.h"
 
 namespace utils {

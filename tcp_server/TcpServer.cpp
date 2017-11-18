@@ -4,7 +4,6 @@
  * Created Date: 2017-11-16
  */
 
-#include <sys/mman.h>
 #include "TcpServer.h"
 
 int *TcpServer::child_count = static_cast<int *>(mmap(NULL, sizeof *child_count, PROT_READ | PROT_WRITE,
@@ -154,9 +153,9 @@ TcpServer::calculate_time_out() {
 }
 
 void
-TcpServer::write_success_header(int client_socket, long data) {
+TcpServer::write_success_header(int client_socket, long content_len) {
     std::string header = "HTTP/1.1 200 OK\r\nContent-Length: ";
-    header += std::to_string(data);
+    header += std::to_string(content_len);
     header += "\r\n\r\n";
     utils::write_wrapper(client_socket, header.c_str(), header.size());
 }

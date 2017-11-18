@@ -26,9 +26,13 @@
 #include <fcntl.h>
 #include <cstdlib>
 #include <utility>
+#include <thread>
+#include <chrono>
+#include <algorithm>
 #include <vector>
 #include <sys/sendfile.h>
 #include <sys/wait.h>
+#include <sys/mman.h>
 
 #define MAXLINE 4096
 #define MEDIUMLINE 256
@@ -122,28 +126,41 @@ namespace utils {
      */
     void close_wrapper(int socket);
 
+    /* Read the ip address of the given struct address */
     int inet_pton_wrapper(int family, const char *strptr, struct in_addr *addrptr);
 
+    /* Read the port number of the given struct address*/
     const char *inet_ntop_wrapper(int family, const void *addrptr, char *strptr, socklen_t len);
 
+    /* Read data from the given socket */
     ssize_t read_wrapper(int filedes, void *buf, size_t nbytes);
 
+    /* Write data on the given socket */
     ssize_t write_wrapper(int filedes, const void *buf, size_t nbytes);
 
+    /* Get the file size of the given file path */
     long file_size(const std::string &filename);
 
+    /* Append the given buffer to a file */
     void append_to_file(const std::string &file_name, char *rcv_buf, ssize_t byte_rcv);
 
+    /* Create a new file then write the given buffer to this file */
     void write_to_file(const std::string &file_name, char *rcv_buf, ssize_t byte_rcv);
 
+    /* Fork a new process, if fork fails will terminate
+       Program execution */
     pid_t fork_wrapper();
 
+    /* Wait for one of the child processes */
     pid_t waitpid_wrapper();
 
+    /* Trim all the whitespaces from left of the string */
     std::string &left_trim(std::string &s);
 
+    /* Trim all the whitespaces from right of the string */
     std::string &right_trim(std::string &s);
 
+    /* Trim all whitespaces from both sides of a string */
     std::string &trim(std::string &s);
 
     /**

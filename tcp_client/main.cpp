@@ -1,19 +1,20 @@
-#include <cstdio>
-#include <cstdlib>
-#include <iostream>
-#include <fstream>
+/**
+ * File: main.cpp
+ * Description: entry point of the client
+ * Created Date: 2017-11-15
+ */
 
 #include "socket_utils.h"
 #include "TcpClient.h"
-#include <thread>
-#include <chrono>
-
-#define RCVBUFSIZE 32
 
 using namespace std;
 
+/* Initialize the server address struct by setting
+   the server IP and port number */
 void init_server_addr(sockaddr_in &server_addr, string ip_address, int port_number);
 
+/* Read the client waiting time from a file named
+   `client-wait.txt` */
 int get_wait_time();
 
 int main(int argc, char *argv[]) {
