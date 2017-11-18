@@ -66,7 +66,8 @@ TcpServer::handle_single_request(int client_socket, const char *client_addr_ip) 
     ssize_t request_size = utils::recv_wrapper(client_socket, req_buf, MAXLINE, 0);
 
     if (request_size <= 0) {
-	std::cout << "[handle_single_request]---Client closed connection" << std::endl;
+        std::cout << "[handle_single_request]---Client closed connection" << std::endl;
+        delete[] req_buf;
         return true;
     }
 
@@ -87,6 +88,7 @@ TcpServer::handle_single_request(int client_socket, const char *client_addr_ip) 
         std::cout << "[handle_single_request]---Error unsupported HTTP method, ignoring" << std::endl;
         std::cout << "[handle_single_request]---Connection with IP" << client_addr_ip << " closed" << std::endl;
     }
+    delete[] req_buf;
     return false;
 }
 
@@ -142,7 +144,7 @@ TcpServer::set_connection_time_out(int client_socket) {
     fd_set set;
     FD_ZERO(&set);
     FD_SET(client_socket, &set);
-    struct timeval timeout = { calculate_time_out(), 0 };
+    struct timeval timeout = {calculate_time_out(), 0};
     return select(client_socket + 1, &set, NULL, NULL, &timeout);
 }
 
