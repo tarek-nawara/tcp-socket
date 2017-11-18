@@ -1,10 +1,15 @@
 # socket-programming
 Simple Implementation for a webserver using Unix socket API
 
-### To test the TCP server
-after you run the server use curl as follows:
-``curl -X GET 'http://0.0.0.0:5000/home/tarek/tmp/notes.md``
+### How to build
+In each tcp_server, tcp_client and utils create a folder called ``cmake-build-debug``
+then put both ``client-input.txt`` and ``client-wait.txt`` inside ``tcp_client/cmake-build-debug``.
+#### Building order
+first build ``utils`` then build both ``tcp_client`` and ``tcp_server``
 
+#### How to run client and server
+for running the server, ``./tcp_server <port number>``
+for running the client, ``./tcp_client <host id> <port number>``.
 ### current Issues
 ##### Client Issues
 
