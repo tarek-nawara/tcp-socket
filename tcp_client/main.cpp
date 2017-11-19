@@ -51,6 +51,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    utils::close_wrapper(server_socket);
     /* Optional sleeping */
     std::this_thread::sleep_for(std::chrono::milliseconds(get_wait_time() * 1000));
     return 0;

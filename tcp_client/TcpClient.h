@@ -32,7 +32,7 @@ public:
 private:
     int port_number;
 
-	/* wait for acknowledge from the server after sending a 
+	/* wait for acknowledge from the server after sending a
 	   POST request */
     bool rcv_ack(int socket);
 
@@ -41,14 +41,14 @@ private:
     void resolve_post_file(int sock, string file_name);
 
 	/* Get the GET response header to get the Content-length */
-    vector<int> * read_header(int socket);
+    unique_ptr<vector<int>> read_header(int socket);
 
 	/* Split the headers on the \r\n character */
-    vector<string> *split_header(string headers);
-	
+    unique_ptr<vector<string>> split_header(string headers);
+
 	/* Extract the response status and content-length
 	   if found from the response header */
-    vector<int> * parse_header(string header);
+    unique_ptr<vector<int>> parse_header(string header);
 
 };
 

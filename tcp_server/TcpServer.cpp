@@ -26,7 +26,7 @@ TcpServer::handle_tcp_client_fork(int server_socket, struct sockaddr_in &server_
     std::cout << "[handle_tcp_client_fork]---With child process: " << process_id << std::endl;
     std::cout << "[handle_tcp_client_fork]---Number of children: " << (*child_count) << std::endl;
     ++(*child_count);
-    while (child_count > 0) {
+    while (*child_count > 0) {
         process_id = utils::waitpid_wrapper();
         if (process_id == 0) {
             break;

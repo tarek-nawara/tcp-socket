@@ -15,12 +15,12 @@
 class TcpServer {
 public:
 
-	/* Handle all requests by forking different processes for 
+	/* Handle all requests by forking different processes for
 	   each request */
     void handle_tcp_client_fork(int server_socket, sockaddr_in &server_addr);
 
 private:
-	
+
 	/* Handle a client request on the given socket */
     void handle_tcp_client(int client_socket, sockaddr_in client_addr);
 
@@ -36,7 +36,7 @@ private:
 	/* Handle client GET requests comming on the given client_socket */
     void handle_get_request(int client_socket, char *req_buf);
 
-	/* Write on the given client socket the success header 
+	/* Write on the given client socket the success header
 	   HTTP/1.1 200 OK */
     void write_success_header(int client_socket, long content_len);
 
@@ -44,11 +44,11 @@ private:
 	   HTTP/1.1 404 File Not Found */
     void write_fail_header(int client_socket);
 
-	/* Sets the connection timeout on the given 
+	/* Sets the connection timeout on the given
 	   client socket */
     int set_connection_time_out(int client_socket);
 
-	/* Calculate the timeout for a socket dynamically 
+	/* Calculate the timeout for a socket dynamically
 	   based on the number of different opend connections */
     int calculate_time_out();
 

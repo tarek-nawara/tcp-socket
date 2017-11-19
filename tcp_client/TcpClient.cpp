@@ -20,7 +20,7 @@ TcpClient::send_get_request(char *host_name, string file_name, int server_socket
     cout << "Received: ";
     char rcv_buf[100];
     int total_byte_rcv = 0;
-    auto *header = read_header(server_socket);
+    auto header = read_header(server_socket);
     if ((*header)[0] != 200) {
         cout << "Get request failed to retrieve file" << endl;
         cout << "HTTP status: " << (*header)[0] << endl;
@@ -84,15 +84,16 @@ TcpClient::resolve_post_file(int sock, string file_name) {
     while (((sent_bytes = sendfile(sock, fileno(pFile), &offset, BUFSIZ)) > 0) && (remain_data > 0)) {
         remain_data -= sent_bytes;
     }
+    delete pFile;
 }
 
-vector<int> *
+unique_ptr<vector<int>>
 TcpClient::read_header(int socket) {
     bool end_of_header = false;
     string header = "";
     char rcv_buf[100];
 
-    auto *res = new vector<int>();
+    unique_ptr<vector<int>> res{ new vector<int>(2) };
     while (!end_of_header) {
         ssize_t byte_rcv = recv_wrapper(socket, rcv_buf, 1, 0);
         rcv_buf[byte_rcv] = '\0';
@@ -107,12 +108,12 @@ TcpClient::read_header(int socket) {
     return res;
 }
 
-vector<int> *
+unique_ptr<vector<int>>
 TcpClient::parse_header(string header) {
     int resp_status;
     int content_len = 0;
-    auto *res = new vector<int>();
-    auto *split_strs = split_header(header);
+    unique_ptr<vector<int>> res{ new vector<int>() };
+    auto split_strs = split_header(header);
     sscanf((*split_strs)[STATUS_INDEX].c_str(), "HTTP/1.1 %d", &resp_status);
     res->push_back(resp_status);
     if (resp_status == 200) {
@@ -122,10 +123,10 @@ TcpClient::parse_header(string header) {
     return res;
 }
 
-vector<string> *
+unique_ptr<vector<string>>
 TcpClient::split_header(string headers) {
     istringstream MyStream(headers);
-    vector<string> *v = new vector<string>();
+    unique_ptr<vector<string>> v{ new vector<string>() };
     string s;
     while (getline(MyStream, s)) {
         v->push_back(s);
