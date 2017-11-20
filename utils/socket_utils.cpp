@@ -28,6 +28,7 @@ namespace utils {
         if (send(socket, msg, msg_len, flags) != msg_len) {
             die_with_error("send() sent different number of bytes than expected");
         }
+	return msg_len;
     }
 
     ssize_t recv_wrapper(int socket,

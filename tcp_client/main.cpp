@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
     init_server_addr(server_addr, argv[1], port_number);
     connect_wrapper(server_socket, (struct sockaddr *) &server_addr, sizeof(server_addr));
 
-    TcpClient *client = new TcpClient(port_number);
+    TcpClient client{ port_number };
     fstream infile;
     infile.open ("client-input.txt");
     string line;
@@ -43,9 +43,9 @@ int main(int argc, char *argv[]) {
         char hostname[20];
         sscanf(line.c_str(), "%*s %s %s", file_name, hostname);
         if (line[0] == 'G') {
-            client->send_get_request(hostname, file_name, server_socket);
+            client.send_get_request(hostname, file_name, server_socket);
         } else if (line[0] == 'P') {
-            client->send_post_request(hostname, file_name, server_socket);
+            client.send_post_request(hostname, file_name, server_socket);
         } else {
             cerr << "[TcpClient::main] Unsupported HTTP method" << endl;
         }
